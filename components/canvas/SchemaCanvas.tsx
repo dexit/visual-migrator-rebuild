@@ -106,6 +106,7 @@ export default function SchemaCanvas() {
         sourceColumnId,
         targetTableId,
         targetColumnId,
+        type: '1:N', // Default to 1:N
       };
 
       addRelationship(newRelationship);

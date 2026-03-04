@@ -6,6 +6,9 @@ export interface Column {
   name: string;
   type: string;
   nullable: boolean;
+  unique?: boolean;
+  index?: boolean;
+  default?: string;
 }
 
 export interface Table {
@@ -16,12 +19,15 @@ export interface Table {
   isCollapsed?: boolean;
 }
 
+export type RelationshipType = '1:1' | '1:N' | 'N:M';
+
 export interface Relationship {
   id: string;
   sourceTableId: string;
   sourceColumnId: string;
   targetTableId: string;
   targetColumnId: string;
+  type: RelationshipType;
 }
 
 interface SchemaState {
@@ -33,6 +39,7 @@ interface SchemaState {
   updateTablePosition: (id: string, position: { x: number; y: number }) => void;
   toggleTableCollapse: (id: string) => void;
   addRelationship: (relationship: Relationship) => void;
+  updateRelationship: (id: string, updates: Partial<Relationship>) => void;
   removeRelationship: (id: string) => void;
 }
 
@@ -61,6 +68,10 @@ export const useSchemaStore = create<SchemaState>()(
         })),
       addRelationship: (relationship) => 
         set((state) => ({ relationships: [...state.relationships, relationship] })),
+      updateRelationship: (id, updates) =>
+        set((state) => ({
+          relationships: state.relationships.map((r) => (r.id === id ? { ...r, ...updates } : r)),
+        })),
       removeRelationship: (id) =>
         set((state) => ({ relationships: state.relationships.filter((r) => r.id !== id) })),
     }),

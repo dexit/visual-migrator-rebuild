@@ -1,17 +1,27 @@
 'use client';
 import React, { useState } from 'react';
-import { Download, Save } from 'lucide-react';
+import { Download, Save, FileCode, Database } from 'lucide-react';
 import { useSchemaStore } from '../../store/useSchemaStore';
 import { generateMigration } from '../../lib/schema-generator';
+import { generateModel } from '../../lib/model-generator';
 
 export default function Toolbar() {
   const { tables, relationships } = useSchemaStore();
   const [showExport, setShowExport] = useState(false);
   const [exportContent, setExportContent] = useState('');
+  const [exportType, setExportType] = useState<'migrations' | 'models'>('migrations');
 
-  const handleExport = () => {
-    const migrations = tables.map((table) => generateMigration(table, relationships, tables)).join('\n\n// ---------------------------------------------------------\n\n');
-    setExportContent(migrations);
+  const handleExport = (type: 'migrations' | 'models') => {
+    setExportType(type);
+    let content = '';
+    
+    if (type === 'migrations') {
+      content = tables.map((table) => generateMigration(table, relationships, tables)).join('\n\n// ---------------------------------------------------------\n\n');
+    } else {
+      content = tables.map((table) => generateModel(table, relationships, tables)).join('\n\n// ---------------------------------------------------------\n\n');
+    }
+    
+    setExportContent(content);
     setShowExport(true);
   };
 
@@ -30,13 +40,24 @@ export default function Toolbar() {
             <Save size={16} />
             Save Draft
           </button>
-          <button 
-            onClick={handleExport}
-            className="flex items-center gap-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-500 rounded-lg text-sm font-medium transition-colors shadow-lg shadow-emerald-900/20"
-          >
-            <Download size={16} />
-            Export Migrations
-          </button>
+          <div className="flex bg-zinc-800 rounded-lg p-1">
+            <button 
+                onClick={() => handleExport('migrations')}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-700 rounded-md text-sm font-medium transition-colors text-zinc-300"
+                title="Export Migrations"
+            >
+                <Database size={16} />
+                Migrations
+            </button>
+            <button 
+                onClick={() => handleExport('models')}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-700 rounded-md text-sm font-medium transition-colors text-zinc-300"
+                title="Export Models"
+            >
+                <FileCode size={16} />
+                Models
+            </button>
+          </div>
         </div>
       </div>
 
@@ -45,7 +66,23 @@ export default function Toolbar() {
         <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
             <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
-              <h3 className="font-bold text-lg text-white">Generated Migrations</h3>
+              <div className="flex items-center gap-4">
+                <h3 className="font-bold text-lg text-white">Generated {exportType === 'migrations' ? 'Migrations' : 'Models'}</h3>
+                <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800">
+                    <button
+                        onClick={() => handleExport('migrations')}
+                        className={`px-3 py-1 text-xs rounded ${exportType === 'migrations' ? 'bg-emerald-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                    >
+                        Migrations
+                    </button>
+                    <button
+                        onClick={() => handleExport('models')}
+                        className={`px-3 py-1 text-xs rounded ${exportType === 'models' ? 'bg-emerald-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                    >
+                        Models
+                    </button>
+                </div>
+              </div>
               <button 
                 onClick={() => setShowExport(false)}
                 className="text-zinc-400 hover:text-white"

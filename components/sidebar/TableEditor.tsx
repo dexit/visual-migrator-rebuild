@@ -172,7 +172,32 @@ export default function TableEditor() {
                             />
                             <span className="text-[10px] text-zinc-500">Null</span>
                           </label>
+                          <label className="flex items-center gap-1 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={col.unique}
+                              onChange={(e) => handleUpdateColumn(table.id, col.id, { unique: e.target.checked })}
+                              className="rounded bg-zinc-900 border-zinc-700 text-blue-500 focus:ring-0"
+                            />
+                            <span className="text-[10px] text-zinc-500">Unq</span>
+                          </label>
+                          <label className="flex items-center gap-1 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={col.index}
+                              onChange={(e) => handleUpdateColumn(table.id, col.id, { index: e.target.checked })}
+                              className="rounded bg-zinc-900 border-zinc-700 text-purple-500 focus:ring-0"
+                            />
+                            <span className="text-[10px] text-zinc-500">Idx</span>
+                          </label>
                         </div>
+                        <input
+                            type="text"
+                            value={col.default || ''}
+                            onChange={(e) => handleUpdateColumn(table.id, col.id, { default: e.target.value })}
+                            className="w-full bg-zinc-900 border border-zinc-800 rounded px-2 py-0.5 text-[10px] text-zinc-400 focus:border-emerald-500 outline-none placeholder-zinc-700"
+                            placeholder="default value"
+                        />
                       </div>
                     ))}
                   </div>
