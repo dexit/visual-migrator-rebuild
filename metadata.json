@@ -1,0 +1,5 @@
+{
+  "name": "Next.js Visual Migrator",
+  "description": "A visual database schema designer that generates Laravel migration files.",
+  "requestFramePermissions": []
+}
