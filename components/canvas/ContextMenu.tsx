@@ -1,6 +1,6 @@
 'use client';
 import React from 'react';
-import { Trash2, Copy, FileJson } from 'lucide-react';
+import { Trash2, Copy, FileJson, Edit } from 'lucide-react';
 
 interface ContextMenuProps {
   x: number;
@@ -8,11 +8,12 @@ interface ContextMenuProps {
   onClose: () => void;
   onDelete?: () => void;
   onDuplicate?: () => void;
+  onEdit?: () => void;
   onJsonImport?: () => void;
   type: 'node' | 'canvas';
 }
 
-export default function ContextMenu({ x, y, onClose, onDelete, onDuplicate, onJsonImport, type }: ContextMenuProps) {
+export default function ContextMenu({ x, y, onClose, onDelete, onDuplicate, onEdit, onJsonImport, type }: ContextMenuProps) {
   return (
     <div
       style={{ top: y, left: x }}
@@ -34,6 +35,16 @@ export default function ContextMenu({ x, y, onClose, onDelete, onDuplicate, onJs
 
       {type === 'node' && (
         <>
+          <button
+            onClick={() => {
+              onEdit?.();
+              onClose();
+            }}
+            className="w-full text-left px-4 py-2 text-sm text-zinc-300 hover:bg-zinc-700 hover:text-white flex items-center gap-2"
+          >
+            <Edit size={14} />
+            Edit
+          </button>
           <button
             onClick={() => {
               onDuplicate?.();

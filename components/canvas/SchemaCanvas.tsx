@@ -19,6 +19,7 @@ import { useSchemaStore, Relationship } from '../../store/useSchemaStore';
 import TableNode from './TableNode';
 import ContextMenu from './ContextMenu';
 import JsonImportModal from '../modals/JsonImportModal';
+import EditTableModal from '../modals/EditTableModal';
 
 const initialEdges: Edge[] = [];
 
@@ -30,12 +31,19 @@ export default function SchemaCanvas() {
   const [edges, setEdges, onEdgesChange] = useEdgesState(initialEdges);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number; type: 'node' | 'canvas'; targetId?: string } | null>(null);
   const [showJsonModal, setShowJsonModal] = useState(false);
+  const [editTableId, setEditTableId] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Define custom node types
   const nodeTypes = useMemo(() => ({ table: TableNode }), []);
 
   // Sync store tables to ReactFlow nodes
   useEffect(() => {
+    if (!mounted) return;
     const newNodes: Node[] = tables.map((table) => ({
       id: table.id,
       type: 'table',
@@ -43,10 +51,11 @@ export default function SchemaCanvas() {
       data: table, // Pass the whole table object as data
     }));
     setNodes(newNodes);
-  }, [tables, setNodes]);
+  }, [tables, setNodes, mounted]);
 
   // Sync relationships to ReactFlow edges
   useEffect(() => {
+    if (!mounted) return;
     const newEdges: Edge[] = relationships.map((rel) => ({
       id: rel.id,
       source: rel.sourceTableId,
@@ -61,7 +70,7 @@ export default function SchemaCanvas() {
       },
     }));
     setEdges(newEdges);
-  }, [relationships, setEdges]);
+  }, [relationships, setEdges, mounted]);
 
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => {
@@ -142,6 +151,10 @@ export default function SchemaCanvas() {
 
   const onPaneClick = useCallback(() => setContextMenu(null), []);
 
+  if (!mounted) {
+    return <div className="h-full w-full bg-zinc-950 flex items-center justify-center text-zinc-500">Loading Schema...</div>;
+  }
+
   return (
     <div style={{ height: '100%', width: '100%' }} className="bg-zinc-950 relative">
       <ReactFlow
@@ -175,14 +188,19 @@ export default function SchemaCanvas() {
                 onDelete={() => {
                     if (contextMenu.targetId) removeTable(contextMenu.targetId);
                 }}
+                onEdit={() => {
+                    if (contextMenu.targetId) setEditTableId(contextMenu.targetId);
+                }}
                 onJsonImport={() => setShowJsonModal(true)}
-                // Duplicate logic could be added here
             />
         </div>
       )}
 
       {showJsonModal && (
         <JsonImportModal onClose={() => setShowJsonModal(false)} />
+      )}
+      {editTableId && (
+        <EditTableModal tableId={editTableId} onClose={() => setEditTableId(null)} />
       )}
     </div>
   );

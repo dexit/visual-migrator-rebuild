@@ -1,24 +1,27 @@
 'use client';
 import React, { useState } from 'react';
-import { Download, Save, FileCode, Database } from 'lucide-react';
+import { Download, Save, FileCode, Database, Inbox } from 'lucide-react';
 import { useSchemaStore } from '../../store/useSchemaStore';
 import { generateMigration } from '../../lib/schema-generator';
 import { generateModel } from '../../lib/model-generator';
+import { generateIngestor, generateJob } from '../../lib/ingestor-generator';
 
 export default function Toolbar() {
   const { tables, relationships } = useSchemaStore();
   const [showExport, setShowExport] = useState(false);
   const [exportContent, setExportContent] = useState('');
-  const [exportType, setExportType] = useState<'migrations' | 'models'>('migrations');
+  const [exportType, setExportType] = useState<'migrations' | 'models' | 'ingestor'>('migrations');
 
-  const handleExport = (type: 'migrations' | 'models') => {
+  const handleExport = (type: 'migrations' | 'models' | 'ingestor') => {
     setExportType(type);
     let content = '';
     
     if (type === 'migrations') {
       content = tables.map((table) => generateMigration(table, relationships, tables)).join('\n\n// ---------------------------------------------------------\n\n');
-    } else {
+    } else if (type === 'models') {
       content = tables.map((table) => generateModel(table, relationships, tables)).join('\n\n// ---------------------------------------------------------\n\n');
+    } else {
+      content = tables.map((table) => `// --- ${table.name} Ingestor ---\n` + generateIngestor(table) + '\n\n' + generateJob(table)).join('\n\n');
     }
     
     setExportContent(content);
@@ -57,6 +60,14 @@ export default function Toolbar() {
                 <FileCode size={16} />
                 Models
             </button>
+            <button 
+                onClick={() => handleExport('ingestor')}
+                className="flex items-center gap-2 px-3 py-1.5 hover:bg-zinc-700 rounded-md text-sm font-medium transition-colors text-zinc-300"
+                title="Export Ingestor/Dispatcher"
+            >
+                <Inbox size={16} />
+                Ingestor
+            </button>
           </div>
         </div>
       </div>
@@ -67,7 +78,7 @@ export default function Toolbar() {
           <div className="bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl w-full max-w-4xl max-h-[80vh] flex flex-col">
             <div className="p-4 border-b border-zinc-800 flex justify-between items-center">
               <div className="flex items-center gap-4">
-                <h3 className="font-bold text-lg text-white">Generated {exportType === 'migrations' ? 'Migrations' : 'Models'}</h3>
+                <h3 className="font-bold text-lg text-white">Generated {exportType === 'migrations' ? 'Migrations' : exportType === 'models' ? 'Models' : 'Ingestor/Dispatcher'}</h3>
                 <div className="flex bg-zinc-950 rounded-lg p-1 border border-zinc-800">
                     <button
                         onClick={() => handleExport('migrations')}
@@ -80,6 +91,12 @@ export default function Toolbar() {
                         className={`px-3 py-1 text-xs rounded ${exportType === 'models' ? 'bg-emerald-600 text-white' : 'text-zinc-400 hover:text-white'}`}
                     >
                         Models
+                    </button>
+                    <button
+                        onClick={() => handleExport('ingestor')}
+                        className={`px-3 py-1 text-xs rounded ${exportType === 'ingestor' ? 'bg-emerald-600 text-white' : 'text-zinc-400 hover:text-white'}`}
+                    >
+                        Ingestor
                     </button>
                 </div>
               </div>
